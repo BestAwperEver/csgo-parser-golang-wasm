@@ -3,20 +3,27 @@
 	<head>
 		<meta charset="utf-8">
 		<script src="wasm_exec.js"></script>
-		<script src="main.js"></script>
+		<script src="js/showstats.js"></script>
 		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 	<body>
 		<input type="file" id="demofile" name="file" enctype="multipart/form-data"/>
-		<button id="btnParse" onclick="parse()">Parse</button>
+		<button id="btnParse" onclick="parseFinalStats()">Parse</button>
+		<button id="btnHeader" onclick="parseHeader()">Show header</button>
 		<br>
 		<p>State: <span id="state"></span></p>
 		<table>
 			<thead>
-				<th>Player</th>
-				<th>Kills</th>
-				<th>Deahs</th>
-				<th>Assists</th>
+				<th>Parameter</th>
+				<th>Value</th>
+			</thead>
+			<tbody id="header">
+			</tbody>
+			<thead>
+			<th>Player</th>
+			<th>Kills</th>
+			<th>Deaths</th>
+			<th>Assists</th>
 			</thead>
 			<tbody id="stats">
 			</tbody>

@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	state('init')
 
 	const go = new Go();
-	WebAssembly.instantiateStreaming(fetch("demoinfocs.wasm"), go.importObject).then((result) => {
+	WebAssembly.instantiateStreaming(fetch("showstats.wasm"), go.importObject).then((result) => {
 		go.run(result.instance);
 		state('ready')
 	});

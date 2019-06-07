@@ -31,8 +31,8 @@ function parseHeader() {
 				let base64 = btoa(arr.reduce((data, byte) => (data.push(String.fromCharCode(byte)), data), []).join(''));
 				parser.write(base64);
 			}
-			// console.log('closing pipe');
-			// parser.close();
+			console.log('closing pipe');
+			parser.close();
 		};
 		reader.readAsArrayBuffer(document.getElementById('demofile').files[0]);
 	});

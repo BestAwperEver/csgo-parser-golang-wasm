@@ -220,10 +220,10 @@ func (p *parser) readHeader() {
 
 func (p *parser) getHeader(callback js.Value) common.DemoHeader {
 	var err error
-	//defer func() {
-	//	err = p.reader.Close()
-	//	checkError(err)
-	//}()
+	defer func() {
+		err = p.reader.Close()
+		checkError(err)
+	}()
 
 	dbgPrint("getHeader")
 	if !p.ready {
@@ -320,7 +320,7 @@ func (p *parser) parseFinalStats(callback js.Value) {
 		checkError(err)
 	}()
 
-	//p.init()
+	p.init()
 	//p.parser = dem.NewParser(p.reader)
 	////
 

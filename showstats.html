@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script src="wasm_exec.js"></script>
+		<script src="js/showstats.js"></script>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	</head>
+	<body>
+		<input type="file" id="demofile" name="file" enctype="multipart/form-data"/>
+		<button id="btnParse" onclick="parseFinalStats()">Get final stats</button>
+		<button id="btnHeader" onclick="parseHeader()">Show header</button>
+		<button id="btnSave" onclick="parseToMongo()">Save to mongodb</button>
+		<button id="btnSave" onclick="printFileName()">Print file name</button>
+		<br>
+		<p>State: <span id="state"></span></p>
+		<table>
+			<thead>
+			<th>Parameter</th>
+			<th>Value</th>
+			</thead>
+			<tbody id="header">
+			</tbody>
+		</table>
+		<table>
+			<thead>
+			<th>Player</th>
+			<th>Kills</th>
+			<th>Deaths</th>
+			<th>Assists</th>
+			</thead>
+			<tbody id="stats">
+			</tbody>
+		</table>
+	</body>
+</html>

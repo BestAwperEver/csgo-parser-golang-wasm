@@ -38,6 +38,40 @@ function parseHeader() {
 	});
 }
 
+function parseToMongo() {
+	state("constructing parser");
+	newParser((parser) => {
+		state("parsing");
+		console.log('parse');
+		parser.saveToMongo(() => {
+			console.log('done');
+			state("saved to mongodb");
+		});
+
+		const reader = new FileReader();
+		reader.onload = function() {
+			const data = reader.result;
+			console.log('writing data');
+			for (let offset = 0; offset < data.byteLength; offset += demoBufferSize) {
+				const arr = readDataIntoBuffer(data, offset);
+				let base64 = btoa(arr.reduce((data, byte) => (data.push(String.fromCharCode(byte)), data), []).join(''));
+				parser.write(base64);
+			}
+			console.log('closing pipe');
+			parser.close();
+		};
+		reader.readAsArrayBuffer(document.getElementById('demofile').files[0]);
+	});
+}
+
+function printFileName() {
+	console.log(document.getElementById('demofile').files[0].name)
+}
+
+function readFileInGo() {
+
+}
+
 function parseFinalStats() {
 	state("creating parser");
 	newParser((parser) => {
@@ -145,18 +179,14 @@ function displayStats(stats) {
 function displayHeader(header) {
 	const table = document.getElementById('header');
 
-	// header.forEach(p => {
-	// 	const row = document.createElement('tr');
-	// 	Object.keys(p).forEach(function(key) {
-	// 		row.appendChild(td(p[key]));
-	// 	});
-	// 	table.appendChild(row);
-	// });
-
 	Object.keys(header).forEach(function(key) {
 		const row = document.createElement('tr');
 		row.appendChild(td(key));
-		row.appendChild(td(header[key]));
+		if (key === "PlaybackTime") {
+			row.appendChild(td(header[key]/60/1000000000));
+		} else {
+			row.appendChild(td(header[key]));
+		}
 		table.appendChild(row);
 	});
 }

@@ -10,7 +10,7 @@ let fileType;
 document.getElementById('status').innerText = "Initializing wasm...";
 
 WebAssembly.instantiateStreaming(
-  fetch("demoparser.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
+  fetch("js/demoparser.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
   mod = result.module;
   inst = result.instance;
   memoryBytes = new Uint8Array(inst.exports.mem.buffer)

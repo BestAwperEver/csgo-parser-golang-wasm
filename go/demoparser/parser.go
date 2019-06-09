@@ -154,6 +154,8 @@ type DemoParser struct {
   shutdownCb    js.Func
   initMemCb     js.Func
   getHeader     js.Func
+  nextFrame     js.Func
+  getPos        js.Func
   parser        *demoinfocs.Parser
   header        common.DemoHeader
   hasNextFrame  bool
@@ -167,7 +169,7 @@ func New() *DemoParser {
   return &DemoParser {
     console: js.Global().Get("console"),
     done:    make(chan struct{}),
-    hasNextFrame: false,
+    hasNextFrame: true,
   }
 }
 
@@ -189,10 +191,19 @@ func (dp *DemoParser) Start() {
   dp.setupGetHeader()
   js.Global().Set("getHeader", dp.getHeader)
 
+  dp.setupNextFrame()
+  js.Global().Set("nextFrame", dp.nextFrame)
+
+  dp.setupGetPositions()
+  js.Global().Set("getPositions", dp.getPos)
+
   <-dp.done
   dp.log("Shutting down app")
   dp.onDemoLoadCb.Release()
   dp.shutdownCb.Release()
+  dp.getHeader.Release()
+  dp.nextFrame.Release()
+  dp.getPos.Release()
 }
 
 // utility function to log a msg to the UI from inside a callback
@@ -202,27 +213,28 @@ func (dp *DemoParser) log(msg string) {
     Set("innerText", msg)
 }
 
-func (dp *DemoParser) parseNextFrame() {
-  if !dp.hasNextFrame {
-    dp.log("There are no more frames in the demo")
-    return
-  }
+func (dp *DemoParser) parseNextFrame() bool {
   var err error
   dp.hasNextFrame, err = dp.parser.ParseNextFrame()
+  if !dp.hasNextFrame {
+    dp.log("There are no more frames in the demo")
+    return false
+  }
   dp.checkError(err)
+  return true
 }
 
 type PlayerMovementInfo struct {
-  SteamID		int64		`bson:"SteamID"`
-  Team  common.Team `bson:"Team"`
-  Position	r3.Vector	`bson:"Position"`
-  ViewX		float32		`bson:"ViewX"`
-  ViewY		float32		`bson:"ViewY"`
+  Name		string		`bson:"SteamID" json:"SteamID"`
+  Team  common.Team `bson:"Team" json:"Team"`
+  Position	r3.Vector	`bson:"Position" json:"Position"`
+  ViewX		float32		`bson:"ViewX" json:"ViewX"`
+  ViewY		float32		`bson:"ViewY" json:"ViewY"`
 }
 
 func NewPlayerMovementInfo(player *common.Player) PlayerMovementInfo {
   return PlayerMovementInfo{
-    player.SteamID,
+    player.Name,
     player.Team,
     player.Position,
     player.ViewDirectionX,

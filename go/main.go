@@ -1,7 +1,7 @@
 package main
 
 import (
-  "WebAssembly1/go/demoparser"
+  "WebAssembly2/go/demoparser"
 )
 
 func main() {

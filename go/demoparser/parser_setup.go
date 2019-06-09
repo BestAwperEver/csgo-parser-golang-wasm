@@ -9,6 +9,23 @@ import (
   "unsafe"
 )
 
+func (dp *DemoParser) setupNextFrame() {
+  dp.nextFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+    //args[0].Invoke(dp.parseNextFrame())
+    return js.ValueOf(dp.parseNextFrame())
+  })
+}
+
+func (dp *DemoParser) setupGetPositions() {
+  dp.getPos = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+    b, err := json.Marshal(dp.getPlayersPositions())
+    dp.checkError(err)
+
+    //args[0].Invoke(string(b))
+    return js.ValueOf(string(b))
+  })
+}
+
 func (dp *DemoParser) setupGetHeader() {
   dp.getHeader = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
     b, err := json.Marshal(getMap(dp.header))

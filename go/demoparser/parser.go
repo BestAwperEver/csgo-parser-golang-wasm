@@ -9,6 +9,7 @@ import (
   "github.com/markus-wa/demoinfocs-golang/events"
   "reflect"
   "syscall/js"
+  "time"
 )
 
 type EquipmentInfo struct {
@@ -148,28 +149,31 @@ func getMap(event interface{}) map[string]interface{} {
 }
 
 type DemoParser struct {
-  inBuf         []uint8
-  outBuf        bytes.Buffer
-  onDemoLoadCb  js.Func
-  shutdownCb    js.Func
-  initMemCb     js.Func
-  getHeader     js.Func
-  nextFrame     js.Func
-  getPos        js.Func
-  parser        *demoinfocs.Parser
-  header        common.DemoHeader
-  hasNextFrame  bool
+  inBuf            []uint8
+  outBuf           bytes.Buffer
+  onDemoLoadCb     js.Func
+  shutdownCb       js.Func
+  initMemCb        js.Func
+  getHeader        js.Func
+  nextFrame        js.Func
+  getPos           js.Func
+  inverseTranslate js.Func
+  translate        js.Func
+  parser           *demoinfocs.Parser
+  header           common.DemoHeader
+  hasNextFrame     bool
+  firing           map[int64]time.Duration
 
   console js.Value
   done    chan struct{}
 }
 
-// New returns a new instance of parser
 func New() *DemoParser {
-  return &DemoParser {
-    console: js.Global().Get("console"),
-    done:    make(chan struct{}),
+  return &DemoParser{
+    console:      js.Global().Get("console"),
+    done:         make(chan struct{}),
     hasNextFrame: true,
+    firing:       make(map[int64]time.Duration),
   }
 }
 
@@ -196,6 +200,12 @@ func (dp *DemoParser) Start() {
 
   dp.setupGetPositions()
   js.Global().Set("getPositions", dp.getPos)
+
+  dp.setupInverseTranslate()
+  js.Global().Set("inverseTranslate", dp.inverseTranslate)
+
+  dp.setupTranslate()
+  js.Global().Set("translate", dp.translate)
 
   <-dp.done
   dp.log("Shutting down app")
@@ -225,27 +235,43 @@ func (dp *DemoParser) parseNextFrame() bool {
 }
 
 type PlayerMovementInfo struct {
-  Name		string		`bson:"SteamID" json:"SteamID"`
-  Team  common.Team `bson:"Team" json:"Team"`
-  Position	r3.Vector	`bson:"Position" json:"Position"`
-  ViewX		float32		`bson:"ViewX" json:"ViewX"`
-  ViewY		float32		`bson:"ViewY" json:"ViewY"`
+  Name      string        `bson:"SteamID" json:"SteamID"`
+  Team      common.Team   `bson:"Team" json:"Team"`
+  Position  r3.Vector     `bson:"Position" json:"Position"`
+  ViewX     float32       `bson:"ViewX" json:"ViewX"`
+  ViewY     float32       `bson:"ViewY" json:"ViewY"`
+  HP        int           `bson:"HP" json:"HP"`
+  Armor     int           `bson:"Armor" json:"Armor"`
+  Flash     int           `json:"Flash"`
+  IsBlinded bool          `json:"IsBlinded"`
+  IsFiring  bool          `json:"IsFiring"`
+  IsAlive   bool          `json:"IsAlive"`
 }
 
-func NewPlayerMovementInfo(player *common.Player) PlayerMovementInfo {
-  return PlayerMovementInfo{
+func (dp *DemoParser) NewPlayerMovementInfo(player *common.Player) PlayerMovementInfo {
+  res := PlayerMovementInfo{
     player.Name,
     player.Team,
     player.Position,
     player.ViewDirectionX,
     player.ViewDirectionY,
+    player.Hp,
+    player.Armor,
+    int(player.FlashDurationTimeRemaining().Nanoseconds()/1000/50),
+    player.IsBlinded(),
+    false,
+    player.IsAlive(),
   }
+  if dp.parser.CurrentTime() - dp.firing[player.SteamID] < time.Millisecond*100 {
+    res.IsFiring = true
+  }
+  return res
 }
 
 func (dp *DemoParser) getPlayersPositions() []PlayerMovementInfo {
   PMIS := make([]PlayerMovementInfo, len(dp.parser.GameState().Participants().Playing()))
   for i, p := range dp.parser.GameState().Participants().Playing() {
-    PMIS[i] = NewPlayerMovementInfo(p)
+    PMIS[i] = dp.NewPlayerMovementInfo(p)
   }
   return PMIS
 }

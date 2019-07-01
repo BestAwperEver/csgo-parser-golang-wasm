@@ -104,6 +104,36 @@ let y_mult = 4478;
 let x_center = 0.549;
 let y_center = 0.724;
 
+/**
+ * @return {string}
+ */
+function LightenDarkenColor(col,amt) {
+  var usePound = false;
+  if ( col[0] == "#" ) {
+    col = col.slice(1);
+    usePound = true;
+  }
+
+  var num = parseInt(col,16);
+
+  var r = (num >> 16) + amt;
+
+  if ( r > 255 ) r = 255;
+  else if  (r < 0) r = 0;
+
+  var b = ((num >> 8) & 0x00FF) + amt;
+
+  if ( b > 255 ) b = 255;
+  else if  (b < 0) b = 0;
+
+  var g = (num & 0x0000FF) + amt;
+
+  if ( g > 255 ) g = 255;
+  else if  ( g < 0 ) g = 0;
+
+  return (usePound?"#":"") + (g | (b << 8) | (r << 16)).toString(16);
+}
+
 function displayPlayersPositions(positions) {
 
   // const de_dust2_wight = 9664, de_dust2_height = 7488;
@@ -111,11 +141,14 @@ function displayPlayersPositions(positions) {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
 
+  ctx.font = "16px Arial";
+
   let pos_x;
   let pos_y;
   let json_pos;
   for (let i = 0; i < positions.length; i++) {
     const player = positions[i];
+    if (player.IsAlive === false) continue;
     // pos_x = (de_dust2_wight/2 + player.Position.X) / de_dust2_wight * canvas.width;
     // pos_x = (.5 + x_mult * player.Position.X / de_dust2_wight) * canvas.width;
     // pos_x = (Number(x_center) + player.Position.X / Number(x_mult)) * canvas.width;
@@ -124,6 +157,9 @@ function displayPlayersPositions(positions) {
     json_pos = JSON.parse(translate(player.Position.X, player.Position.Y));
     pos_x = json_pos.X;
     pos_y = json_pos.Y;
+    // ctx.fillStyle = '#FACE8D';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(player.SteamID + " (" + player.HP + ", " + player.Armor + ")", pos_x, pos_y - 20);
     ctx.beginPath();
     if (player["Team"] === 2) {
       // terrorist
@@ -132,8 +168,20 @@ function displayPlayersPositions(positions) {
       //counter-terrorist
       ctx.fillStyle = '#0000FF';
     }
+    if (player.IsBlinded) {
+      ctx.fillStyle = '#FFFFFF'; // LightenDarkenColor(ctx.fillStyle, player.Flash)
+    }
     ctx.arc(pos_x, pos_y, 4, 0, 2 * Math.PI);
     ctx.fill();
+    ctx.strokeStyle = '#000000';
+    ctx.stroke();
+
+    ctx.beginPath();
+    if (player.IsFiring) {
+      ctx.strokeStyle = '#FF0000';
+    }
+    ctx.arc(pos_x, pos_y, 6, -(player.ViewX + 20)/180 * Math.PI,-(player.ViewX - 20)/180 * Math.PI);
+    // ctx.fill();
     ctx.stroke();
   }
 }

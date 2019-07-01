@@ -29,6 +29,21 @@ function gotMem(pointer) {
   loadDemo();
 }
 
+const elem = document.getElementById('canvases'),
+  elemLeft = elem.offsetLeft,
+  elemTop = elem.offsetTop,
+  elements = [];
+
+elem.addEventListener('click', function(event) {
+  const x = event.pageX - elemLeft, y = event.pageY - elemTop;
+
+  json_pos = JSON.parse(inverseTranslate(x, y));
+
+  document.getElementById('xcoord').innerText = json_pos.X;
+  document.getElementById('ycoord').innerText = json_pos.Y;
+
+}, false);
+
 function printPositions() {
   if (nextFrame()) {
     console.log(JSON.parse(getPositions()))
@@ -59,7 +74,7 @@ function drawMap() {
   const ctx = mapCanvas.getContext('2d');
   const img = new Image;
   img.onload = function(){
-    ctx.drawImage(img,0,0); // Or at whatever offset you like
+    ctx.drawImage(img,0,0);
   };
   let mapName;
   getHeader((header) => {
@@ -91,20 +106,24 @@ let y_center = 0.724;
 
 function displayPlayersPositions(positions) {
 
-  const de_dust2_wight = 9664, de_dust2_height = 7488;
+  // const de_dust2_wight = 9664, de_dust2_height = 7488;
   const canvas = document.getElementById("myCanvas");
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
 
   let pos_x;
   let pos_y;
+  let json_pos;
   for (let i = 0; i < positions.length; i++) {
     const player = positions[i];
     // pos_x = (de_dust2_wight/2 + player.Position.X) / de_dust2_wight * canvas.width;
     // pos_x = (.5 + x_mult * player.Position.X / de_dust2_wight) * canvas.width;
-    pos_x = (Number(x_center) + player.Position.X / Number(x_mult)) * canvas.width;
+    // pos_x = (Number(x_center) + player.Position.X / Number(x_mult)) * canvas.width;
     // pos_y = (de_dust2_height/2 - y_mult * player.Position.Y) / de_dust2_height * canvas.height;
-    pos_y = (Number(y_center) - player.Position.Y / Number(y_mult)) * canvas.height;
+    // pos_y = (Number(y_center) - player.Position.Y / Number(y_mult)) * canvas.height;
+    json_pos = JSON.parse(translate(player.Position.X, player.Position.Y));
+    pos_x = json_pos.X;
+    pos_y = json_pos.Y;
     ctx.beginPath();
     if (player["Team"] === 2) {
       // terrorist

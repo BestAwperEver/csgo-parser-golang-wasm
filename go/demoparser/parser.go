@@ -159,6 +159,7 @@ type DemoParser struct {
   getPos           js.Func
   inverseTranslate js.Func
   translate        js.Func
+  getBomb          js.Func
   parser           *demoinfocs.Parser
   header           common.DemoHeader
   hasNextFrame     bool
@@ -207,6 +208,9 @@ func (dp *DemoParser) Start() {
   dp.setupTranslate()
   js.Global().Set("translate", dp.translate)
 
+  dp.setupGetBombPosition()
+  js.Global().Set("getBomb", dp.getBomb)
+
   <-dp.done
   dp.log("Shutting down app")
   dp.onDemoLoadCb.Release()
@@ -246,6 +250,7 @@ type PlayerMovementInfo struct {
   IsBlinded bool          `json:"IsBlinded"`
   IsFiring  bool          `json:"IsFiring"`
   IsAlive   bool          `json:"IsAlive"`
+  HasBomb   bool          `json:"HasBomb"`
 }
 
 func (dp *DemoParser) NewPlayerMovementInfo(player *common.Player) PlayerMovementInfo {
@@ -257,13 +262,17 @@ func (dp *DemoParser) NewPlayerMovementInfo(player *common.Player) PlayerMovemen
     player.ViewDirectionY,
     player.Hp,
     player.Armor,
-    int(player.FlashDurationTimeRemaining().Nanoseconds()/1000/50),
+    int(player.FlashDurationTimeRemaining().Nanoseconds()/1000000000/50),
     player.IsBlinded(),
     false,
     player.IsAlive(),
+    false,
   }
   if dp.parser.CurrentTime() - dp.firing[player.SteamID] < time.Millisecond*100 {
     res.IsFiring = true
+  }
+  if dp.parser.GameState().Bomb().Carrier == player {
+    res.HasBomb = true
   }
   return res
 }
@@ -274,6 +283,15 @@ func (dp *DemoParser) getPlayersPositions() []PlayerMovementInfo {
     PMIS[i] = dp.NewPlayerMovementInfo(p)
   }
   return PMIS
+}
+
+func (dp *DemoParser) getBombPosition() InGameCoords {
+  res := InGameCoords{}
+  if dp.parser.GameState().Bomb().Carrier == nil {
+    res.X = dp.parser.GameState().Bomb().Position().X
+    res.Y = dp.parser.GameState().Bomb().Position().Y
+  }
+  return res
 }
 
 func (dp *DemoParser) checkError(err error) {

@@ -47,6 +47,7 @@ elem.addEventListener('click', function(event) {
 function printPositions() {
   if (nextFrame()) {
     console.log(JSON.parse(getPositions()))
+    console.log(JSON.parse(getBomb()))
   }
 }
 
@@ -169,21 +170,48 @@ function displayPlayersPositions(positions) {
       ctx.fillStyle = '#0000FF';
     }
     if (player.IsBlinded) {
-      ctx.fillStyle = '#FFFFFF'; // LightenDarkenColor(ctx.fillStyle, player.Flash)
+      // ctx.fillStyle = '#FFFFFF';
+      ctx.fillStyle = LightenDarkenColor(ctx.fillStyle, player.Flash)
     }
     ctx.arc(pos_x, pos_y, 4, 0, 2 * Math.PI);
     ctx.fill();
     ctx.strokeStyle = '#000000';
     ctx.stroke();
 
+    if (player.HasBomb) {
+      ctx.strokeStyle = '#FF0000';
+      ctx.fillStyle = '#440000';
+
+      ctx.beginPath();
+      ctx.arc(pos_x, pos_y, 2, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+    }
+
     ctx.beginPath();
     if (player.IsFiring) {
       ctx.strokeStyle = '#FF0000';
+    } else {
+      ctx.strokeStyle = '#000000';
     }
     ctx.arc(pos_x, pos_y, 6, -(player.ViewX + 20)/180 * Math.PI,-(player.ViewX - 20)/180 * Math.PI);
     // ctx.fill();
     ctx.stroke();
   }
+
+  bomb_pos = JSON.parse(getBomb());
+
+  if (Number(bomb_pos.X) !== 0) {
+    bomb_pos = JSON.parse(translate(bomb_pos.X, bomb_pos.Y));
+    ctx.strokeStyle = '#FF0000';
+    ctx.fillStyle = '#440000';
+
+    ctx.beginPath();
+    ctx.arc(bomb_pos.X, bomb_pos.Y, 2, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+  }
+
 }
 
 function showHeader() {

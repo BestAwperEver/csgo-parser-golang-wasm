@@ -85,6 +85,15 @@ func (dp *DemoParser) setupShutdownCb() {
   })
 }
 
+func (dp *DemoParser) setupGetBombPosition() {
+  dp.getBomb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+    b, err := json.Marshal(dp.getBombPosition())
+    dp.checkError(err)
+
+    return js.ValueOf(string(b))
+  })
+}
+
 func (dp *DemoParser) setupOnDemoLoadCb() {
   dp.onDemoLoadCb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
     reader := bytes.NewReader(dp.inBuf)

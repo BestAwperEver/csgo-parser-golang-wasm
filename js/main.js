@@ -170,8 +170,8 @@ function displayPlayersPositions(positions) {
       ctx.fillStyle = '#0000FF';
     }
     if (player.IsBlinded) {
-      // ctx.fillStyle = '#FFFFFF';
-      ctx.fillStyle = LightenDarkenColor(ctx.fillStyle, player.Flash)
+      ctx.fillStyle = '#FFFFFF';
+      // ctx.fillStyle = LightenDarkenColor(ctx.fillStyle, player.Flash)
     }
     ctx.arc(pos_x, pos_y, 4, 0, 2 * Math.PI);
     ctx.fill();

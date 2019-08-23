@@ -66,8 +66,28 @@ function drawFrame() {
   }
 }
 
+function changeRadar() {
+  if (mapName !== "none") {
+    const mapCanvas = document.getElementById('mapCanvas');
+    const ctx = mapCanvas.getContext('2d');
+    const img = new Image;
+    img.onload = function(){
+      ctx.drawImage(img,0,0);
+    };
+    if (!radar_lower) {
+      img.src = "https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/"+mapName+"_lower_radar.png";
+      radar_lower = true
+    } else {
+      img.src = "https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/"+mapName+"_radar.png";
+      radar_lower = false
+    }
+  }
+}
+
 let draw = true;
 let anim;
+let mapName = "none";
+let radar_lower = false;
 // let map_displayed = false;
 
 function drawMap() {
@@ -77,10 +97,10 @@ function drawMap() {
   img.onload = function(){
     ctx.drawImage(img,0,0);
   };
-  let mapName;
   getHeader((header) => {
     mapName = JSON.parse(header).MapName.toLowerCase()
     img.src = "https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/"+mapName+"_radar.png";
+    radar_lower = false
   });
   // map_displayed = true;
 }

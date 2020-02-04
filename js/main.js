@@ -13,7 +13,7 @@ WebAssembly.instantiateStreaming(
   fetch("js/demoparser.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
   mod = result.module;
   inst = result.instance;
-  memoryBytes = new Uint8Array(inst.exports.mem.buffer)
+  memoryBytes = new Uint8Array(inst.exports.mem.buffer);
   document.getElementById('status').innerText = "Initialization complete.";
   run();
 });
@@ -39,15 +39,16 @@ elem.addEventListener('click', function(event) {
 
   json_pos = JSON.parse(inverseTranslate(x, y));
 
-  document.getElementById('xcoord').innerText = json_pos.X;
-  document.getElementById('ycoord').innerText = json_pos.Y;
+  document.getElementById('xcoord').innerText = json_pos.X.toFixed(2);
+  document.getElementById('ycoord').innerText = json_pos.Y.toFixed(2);
 
 }, false);
 
 function printPositions() {
   if (nextFrame()) {
-    console.log(JSON.parse(getPositions()))
-    console.log(JSON.parse(getBomb()))
+    console.log(JSON.parse(getPositions()));
+    console.log(JSON.parse(getBomb()));
+    console.log(JSON.parse(getWeaponPositions()));
   }
 }
 
@@ -66,28 +67,8 @@ function drawFrame() {
   }
 }
 
-function changeRadar() {
-  if (mapName !== "none") {
-    const mapCanvas = document.getElementById('mapCanvas');
-    const ctx = mapCanvas.getContext('2d');
-    const img = new Image;
-    img.onload = function(){
-      ctx.drawImage(img,0,0);
-    };
-    if (!radar_lower) {
-      img.src = "https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/"+mapName+"_lower_radar.png";
-      radar_lower = true
-    } else {
-      img.src = "https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/"+mapName+"_radar.png";
-      radar_lower = false
-    }
-  }
-}
-
 let draw = true;
 let anim;
-let mapName = "none";
-let radar_lower = false;
 // let map_displayed = false;
 
 function drawMap() {
@@ -97,10 +78,10 @@ function drawMap() {
   img.onload = function(){
     ctx.drawImage(img,0,0);
   };
+  let mapName;
   getHeader((header) => {
     mapName = JSON.parse(header).MapName.toLowerCase()
     img.src = "https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/"+mapName+"_radar.png";
-    radar_lower = false
   });
   // map_displayed = true;
 }
@@ -129,25 +110,25 @@ let y_center = 0.724;
  * @return {string}
  */
 function LightenDarkenColor(col,amt) {
-  var usePound = false;
-  if ( col[0] == "#" ) {
+  let usePound = false;
+  if ( col[0] === "#" ) {
     col = col.slice(1);
     usePound = true;
   }
 
-  var num = parseInt(col,16);
+  const num = parseInt(col, 16);
 
-  var r = (num >> 16) + amt;
+  let r = (num >> 16) + amt;
 
   if ( r > 255 ) r = 255;
   else if  (r < 0) r = 0;
 
-  var b = ((num >> 8) & 0x00FF) + amt;
+  let b = ((num >> 8) & 0x00FF) + amt;
 
   if ( b > 255 ) b = 255;
   else if  (b < 0) b = 0;
 
-  var g = (num & 0x0000FF) + amt;
+  let g = (num & 0x0000FF) + amt;
 
   if ( g > 255 ) g = 255;
   else if  ( g < 0 ) g = 0;
@@ -193,7 +174,7 @@ function displayPlayersPositions(positions) {
       ctx.fillStyle = '#FFFFFF';
       // ctx.fillStyle = LightenDarkenColor(ctx.fillStyle, player.Flash)
     }
-    ctx.arc(pos_x, pos_y, 4, 0, 2 * Math.PI);
+    ctx.arc(pos_x, pos_y, 5, 0, 2 * Math.PI);
     ctx.fill();
     ctx.strokeStyle = '#000000';
     ctx.stroke();
@@ -214,20 +195,60 @@ function displayPlayersPositions(positions) {
     } else {
       ctx.strokeStyle = '#000000';
     }
-    ctx.arc(pos_x, pos_y, 6, -(player.ViewX + 20)/180 * Math.PI,-(player.ViewX - 20)/180 * Math.PI);
+    ctx.arc(pos_x, pos_y, 7, -(player.ViewX + 20)/180 * Math.PI,-(player.ViewX - 20)/180 * Math.PI);
     // ctx.fill();
     ctx.stroke();
   }
 
-  bomb_pos = JSON.parse(getBomb());
+  const chickenPositions = JSON.parse(getChickenPositions());
+  ctx.fillStyle = '#FFFFFF';
+
+  for (let i = 0; i < chickenPositions.length; i++) {
+    const chicken = chickenPositions[i];
+    json_pos = JSON.parse(translate(chicken.Position.X, chicken.Position.Y));
+    pos_x = json_pos.X;
+    pos_y = json_pos.Y;
+    ctx.fillText("Chicken", pos_x - 20, pos_y - 20);
+    ctx.beginPath();
+    ctx.arc(pos_x, pos_y, 2, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = '#000000';
+    ctx.stroke();
+  }
+
+  // console.log(getWeaponPositions());
+  const weaponPositions = JSON.parse(getWeaponPositions());
+
+  for (let i = 0; i < weaponPositions.length; i++) {
+    const weapon = weaponPositions[i];
+    json_pos = JSON.parse(translate(weapon.Position.X, weapon.Position.Y));
+    pos_x = json_pos.X;
+    pos_y = json_pos.Y;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(weapon.WeaponName, pos_x - 20, pos_y - 20);
+    ctx.beginPath();
+    ctx.fillStyle = '#000000';
+    ctx.arc(pos_x, pos_y, 2, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = '#000000';
+    ctx.stroke();
+  }
+
+  let bomb_pos = JSON.parse(getBomb());
 
   if (Number(bomb_pos.X) !== 0) {
+    const bomb_defused = Boolean(bomb_pos.Defused);
     bomb_pos = JSON.parse(translate(bomb_pos.X, bomb_pos.Y));
-    ctx.strokeStyle = '#FF0000';
-    ctx.fillStyle = '#440000';
+    if (bomb_defused) {
+      ctx.strokeStyle = '#00FF00';
+      ctx.fillStyle = '#004400';
+    } else {
+      ctx.strokeStyle = '#FF0000';
+      ctx.fillStyle = '#440000';
+    }
 
     ctx.beginPath();
-    ctx.arc(bomb_pos.X, bomb_pos.Y, 2, 0, 2 * Math.PI);
+    ctx.arc(bomb_pos.X, bomb_pos.Y, 3, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
   }

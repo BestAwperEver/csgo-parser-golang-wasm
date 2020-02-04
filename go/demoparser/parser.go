@@ -7,19 +7,20 @@ import (
   "github.com/markus-wa/demoinfocs-golang"
   "github.com/markus-wa/demoinfocs-golang/common"
   "github.com/markus-wa/demoinfocs-golang/events"
+  st "github.com/markus-wa/demoinfocs-golang/sendtables"
   "reflect"
   "syscall/js"
   "time"
 )
 
 type EquipmentInfo struct {
-  UniqueID		int64					`bson:"UniqueID"`
-  Weapon			common.EquipmentElement `bson:"Weapon"`
-  OwnerID			int64					`bson:"OwnerID"`
-  //AmmoType		int 					`bson:"AmmoType"`
-  AmmoInMagazine	int 					`bson:"AmmoInMagazine"`
-  AmmoReserve		int 					`bson:"AmmoReserve"`
-  ZoomLevel		int 					`bson:"ZoomLevel"`
+  UniqueID       int64                   `bson:"UniqueID"`
+  Weapon         common.EquipmentElement `bson:"Weapon"`
+  OwnerID        int64                   `bson:"OwnerID"`
+  AmmoInMagazine int                     `bson:"AmmoInMagazine"`
+  AmmoReserve    int                     `bson:"AmmoReserve"`
+  ZoomLevel      int                     `bson:"ZoomLevel"`
+  // AmmoType		int 					`bson:"AmmoType"`
 }
 
 func NewEquipmentInfo(Equip common.Equipment) EquipmentInfo {
@@ -27,7 +28,7 @@ func NewEquipmentInfo(Equip common.Equipment) EquipmentInfo {
     Equip.UniqueID(),
     Equip.Weapon,
     -1,
-    //Equip.AmmoType,
+    // Equip.AmmoType,
     Equip.AmmoInMagazine,
     0,
     Equip.ZoomLevel,
@@ -43,22 +44,22 @@ func NewEquipmentInfo(Equip common.Equipment) EquipmentInfo {
 }
 
 type TeamStateInfo struct {
-  ID			int		`bson:"ID"`
-  Score		int		`bson:"Score"`
-  ClanName	string	`bson:"ClanName"`
-  Flag		string	`bson:"Flag"`
+  ID       int    `bson:"ID"`
+  Score    int    `bson:"Score"`
+  ClanName string `bson:"ClanName"`
+  Flag     string `bson:"Flag"`
 }
 
 type InfernoInfo struct {
-  UniqueID		int64		`bson:"UniqueID"`
-  ConvexHull2D	[]r2.Point	`bson:"ConvexHull2D"`
+  UniqueID     int64      `bson:"UniqueID"`
+  ConvexHull2D []r2.Point `bson:"ConvexHull2D"`
 }
 
 type EquipmentElementStaticInfo struct {
-  UniqueID	int64					`bson:"UniqueID"`
-  EntityID	int						`bson:"EntityID"`
-  OwnerID		int64					`bson:"OwnerID"`
-  Weapon		common.EquipmentElement	`bson:"Weapon"`
+  UniqueID int64                   `bson:"UniqueID"`
+  EntityID int                     `bson:"EntityID"`
+  OwnerID  int64                   `bson:"OwnerID"`
+  Weapon   common.EquipmentElement `bson:"Weapon"`
 }
 
 var EquipmentElements = make(map[int64]EquipmentElementStaticInfo)
@@ -67,13 +68,13 @@ func NewEquipmentElementStaticInfo(GP common.GrenadeProjectile) EquipmentElement
   GPI := EquipmentElementStaticInfo{
     GP.UniqueID(),
     GP.EntityID,
-    //-1,
+    // -1,
     -1,
     GP.Weapon,
   }
-  //if GP.Owner != nil {
+  // if GP.Owner != nil {
   //	GPI.OwnerID = GP.Owner.SteamID
-  //}
+  // }
   if GP.Thrower != nil {
     GPI.OwnerID = GP.Thrower.SteamID
   }
@@ -95,7 +96,7 @@ func getMap(event interface{}) map[string]interface{} {
       case reflect.Ptr:
         if field.IsNil() == false {
           switch field := reflect.Indirect(field); field.Type().Name() {
-          //default:
+          // default:
           //	data[reflectedEvent.Type().Field(i).Name] = reflectedEvent.Field(i).Interface()
           case "Player":
             P := field.Interface().(common.Player)
@@ -109,7 +110,7 @@ func getMap(event interface{}) map[string]interface{} {
           case "Equipment":
             Equip := field.Interface().(common.Equipment)
             EI := NewEquipmentInfo(Equip)
-            //EI := getMap(Equip)
+            // EI := getMap(Equip)
             resultMap[reflectedEvent.Type().Field(i).Name] = EI
           case "TeamState":
             TS := field.Interface().(common.TeamState)
@@ -136,13 +137,13 @@ func getMap(event interface{}) map[string]interface{} {
         resultMap[reflectedEvent.Type().Field(i).Name] = field.Interface()
       }
     }
-    //if field := reflectedEvent.Field(i); field.Kind() != reflect.Ptr && field.Kind() != reflect.Struct {
+    // if field := reflectedEvent.Field(i); field.Kind() != reflect.Ptr && field.Kind() != reflect.Struct {
     //	if field.CanInterface() {
     //		resultMap[reflectedEvent.Type().Field(i).Name] = field.Interface()
     //	}
-    //} else if field.CanInterface() {
+    // } else if field.CanInterface() {
     //
-    //}
+    // }
   }
 
   return resultMap
@@ -157,13 +158,17 @@ type DemoParser struct {
   getHeader        js.Func
   nextFrame        js.Func
   getPos           js.Func
+  getChickenPos    js.Func
+  getWeaponPos     js.Func
   inverseTranslate js.Func
   translate        js.Func
   getBomb          js.Func
+  decodePositions  js.Func
   parser           *demoinfocs.Parser
   header           common.DemoHeader
   hasNextFrame     bool
   firing           map[int64]time.Duration
+  bombDefused      bool
 
   console js.Value
   done    chan struct{}
@@ -181,6 +186,7 @@ func New() *DemoParser {
 // Start sets up all the callbacks and waits for the close signal
 // to be sent from the browser.
 func (dp *DemoParser) Start() {
+  dp.console.Call("log", "Started")
   // Setup callbacks
   dp.setupInitMemCb()
   js.Global().Set("initMem", dp.initMemCb)
@@ -188,13 +194,19 @@ func (dp *DemoParser) Start() {
   dp.setupOnDemoLoadCb()
   js.Global().Set("loadDemo", dp.onDemoLoadCb)
 
+  // dp.setupShutdownCb()
+  // js.Global().Get("document").
+  //   Call("getElementById", "close").
+  //   Call("addEventListener", "click", dp.shutdownCb)
+
   dp.setupShutdownCb()
-  js.Global().Get("document").
-    Call("getElementById", "close").
-    Call("addEventListener", "click", dp.shutdownCb)
+  js.Global().Set("closeGo", dp.shutdownCb)
 
   dp.setupGetHeader()
   js.Global().Set("getHeader", dp.getHeader)
+
+  dp.setupDecodePositions()
+  js.Global().Set("decodePositions", dp.decodePositions)
 
   dp.setupNextFrame()
   js.Global().Set("nextFrame", dp.nextFrame)
@@ -202,13 +214,19 @@ func (dp *DemoParser) Start() {
   dp.setupGetPositions()
   js.Global().Set("getPositions", dp.getPos)
 
+  dp.setupGetChickenPositions()
+  js.Global().Set("getChickenPositions", dp.getChickenPos)
+
+  dp.setupGetWeapons()
+  js.Global().Set("getWeaponPositions", dp.getWeaponPos)
+
   dp.setupInverseTranslate()
   js.Global().Set("inverseTranslate", dp.inverseTranslate)
 
   dp.setupTranslate()
   js.Global().Set("translate", dp.translate)
 
-  dp.setupGetBombPosition()
+  dp.setupGetBombState()
   js.Global().Set("getBomb", dp.getBomb)
 
   <-dp.done
@@ -218,13 +236,16 @@ func (dp *DemoParser) Start() {
   dp.getHeader.Release()
   dp.nextFrame.Release()
   dp.getPos.Release()
+  dp.getChickenPos.Release()
+  dp.getWeaponPos.Release()
 }
 
 // utility function to log a msg to the UI from inside a callback
 func (dp *DemoParser) log(msg string) {
-  js.Global().Get("document").
-    Call("getElementById", "status").
-    Set("innerText", msg)
+  dp.console.Call("log", msg)
+  // js.Global().Get("document").
+  //   Call("getElementById", "status").
+  //   Set("innerText", msg)
 }
 
 func (dp *DemoParser) parseNextFrame() bool {
@@ -238,19 +259,45 @@ func (dp *DemoParser) parseNextFrame() bool {
   return true
 }
 
+type ChickenMovementInfo struct {
+  Position r3.Vector `bson:"Position" json:"Position"`
+  ViewX    float32   `bson:"ViewX" json:"ViewX"`
+  ViewY    float32   `bson:"ViewY" json:"ViewY"`
+}
+
+func NewChickenMovementInfo(entity *st.Entity) ChickenMovementInfo {
+  return ChickenMovementInfo{
+    Position: entity.Position(),
+    ViewX:    float32(entity.FindPropertyI("m_angRotation").Value().VectorVal.X),
+    ViewY:    float32(entity.FindPropertyI("m_angRotation").Value().VectorVal.Y),
+  }
+}
+
+type WeaponMovementInfo struct {
+  Position r3.Vector `bson:"Position" json:"Position"`
+  Name     string    `json:"WeaponName" bson:"WeaponName"`
+}
+
+func NewWeaponMovementInfo(pos r3.Vector, name string) WeaponMovementInfo {
+  return WeaponMovementInfo{
+    Position: pos,
+    Name:     name,
+  }
+}
+
 type PlayerMovementInfo struct {
-  Name      string        `bson:"SteamID" json:"SteamID"`
-  Team      common.Team   `bson:"Team" json:"Team"`
-  Position  r3.Vector     `bson:"Position" json:"Position"`
-  ViewX     float32       `bson:"ViewX" json:"ViewX"`
-  ViewY     float32       `bson:"ViewY" json:"ViewY"`
-  HP        int           `bson:"HP" json:"HP"`
-  Armor     int           `bson:"Armor" json:"Armor"`
-  Flash     int           `json:"Flash"`
-  IsBlinded bool          `json:"IsBlinded"`
-  IsFiring  bool          `json:"IsFiring"`
-  IsAlive   bool          `json:"IsAlive"`
-  HasBomb   bool          `json:"HasBomb"`
+  Name      string      `bson:"SteamID" json:"SteamID"`
+  Team      common.Team `bson:"Team" json:"Team"`
+  Position  r3.Vector   `bson:"Position" json:"Position"`
+  ViewX     float32     `bson:"ViewX" json:"ViewX"`
+  ViewY     float32     `bson:"ViewY" json:"ViewY"`
+  HP        int         `bson:"HP" json:"HP"`
+  Armor     int         `bson:"Armor" json:"Armor"`
+  Flash     int         `json:"Flash"`
+  IsBlinded bool        `json:"IsBlinded"`
+  IsFiring  bool        `json:"IsFiring"`
+  IsAlive   bool        `json:"IsAlive"`
+  HasBomb   bool        `json:"HasBomb"`
 }
 
 func (dp *DemoParser) NewPlayerMovementInfo(player *common.Player) PlayerMovementInfo {
@@ -262,13 +309,13 @@ func (dp *DemoParser) NewPlayerMovementInfo(player *common.Player) PlayerMovemen
     player.ViewDirectionY,
     player.Hp,
     player.Armor,
-    int(player.FlashDurationTimeRemaining().Nanoseconds()/1000000000/50),
+    int(player.FlashDurationTimeRemaining().Nanoseconds() / 1000000000 / 50),
     player.IsBlinded(),
     false,
     player.IsAlive(),
     false,
   }
-  if dp.parser.CurrentTime() - dp.firing[player.SteamID] < time.Millisecond*100 {
+  if dp.parser.CurrentTime()-dp.firing[player.SteamID] < time.Millisecond*100 {
     res.IsFiring = true
   }
   if dp.parser.GameState().Bomb().Carrier == player {
@@ -285,8 +332,50 @@ func (dp *DemoParser) getPlayersPositions() []PlayerMovementInfo {
   return PMIS
 }
 
-func (dp *DemoParser) getBombPosition() InGameCoords {
-  res := InGameCoords{}
+func (dp *DemoParser) getChickensPositions() []ChickenMovementInfo {
+  ChickenMovementInfos := make([]ChickenMovementInfo, 0, 8)
+  for _, entity := range dp.parser.GameState().Entities() {
+    if entity.ServerClass().Name() == "CChicken" {
+      ChickenMovementInfos = append(ChickenMovementInfos, NewChickenMovementInfo(entity))
+    }
+  }
+  return ChickenMovementInfos
+}
+
+func (dp *DemoParser) getWeaponPositions() []WeaponMovementInfo {
+  WeaponMovementInfos := make([]WeaponMovementInfo, 0)
+  weapons := dp.parser.Weapons()
+
+  for entityID, entity := range dp.parser.GameState().Entities() {
+    for _, bc := range entity.ServerClass().BaseClasses() {
+      switch bc.Name() {
+      case "CWeaponCSBase", "CBaseGrenade", "CBaseCSGrenade":
+        pos := entity.Position()
+        if pos != (r3.Vector{}) {
+          weapon := weapons[entityID].Weapon.String()
+          WeaponMovementInfos = append(WeaponMovementInfos, NewWeaponMovementInfo(pos, weapon))
+        }
+        continue
+      }
+    }
+  }
+
+  // for entityID, weapon := range dp.parser.Weapons() {
+  //   entity := dp.parser.GameState().Entities()[entityID]
+  //   if entity == nil || entity.HasPosition() == false {
+  //     continue
+  //   }
+  //   pos := dp.parser.GameState().Entities()[entityID].Position()
+  //   if pos != (r3.Vector{}) {
+  //     WeaponMovementInfos = append(WeaponMovementInfos, NewWeaponMovementInfo(pos, weapon.String()))
+  //   }
+  // }
+
+  return WeaponMovementInfos
+}
+
+func (dp *DemoParser) getBombState() BombState {
+  res := BombState{Defused: dp.bombDefused}
   if dp.parser.GameState().Bomb().Carrier == nil {
     res.X = dp.parser.GameState().Bomb().Position().X
     res.Y = dp.parser.GameState().Bomb().Position().Y
@@ -296,6 +385,8 @@ func (dp *DemoParser) getBombPosition() InGameCoords {
 
 func (dp *DemoParser) checkError(err error) {
   if err != nil {
-    dp.log(err.Error())
+    dp.log("err: " + err.Error())
+    panic(err)
+    // dp.console.Call("log", "err:", err.Error())
   }
 }

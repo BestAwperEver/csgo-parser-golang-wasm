@@ -344,18 +344,24 @@ func (dp *DemoParser) getChickensPositions() []ChickenMovementInfo {
 
 func (dp *DemoParser) getWeaponPositions() []WeaponMovementInfo {
   WeaponMovementInfos := make([]WeaponMovementInfo, 0)
-  weapons := dp.parser.Weapons()
+  // weapons := dp.parser.Weapons()
 
-  for entityID, entity := range dp.parser.GameState().Entities() {
-    for _, bc := range entity.ServerClass().BaseClasses() {
+  for _, entity := range dp.parser.GameState().Entities() {
+    prop := entity.FindPropertyI("m_nModelIndex")
+    if prop == nil {
+      continue
+    }
+    sc := entity.ServerClass()
+    modelIndex := prop.Value().IntVal
+    weapon := dp.parser.EquipmentMapping(modelIndex, sc) // weapons[entityID].Weapon.String()
+    L: for _, bc := range sc.BaseClasses() {
       switch bc.Name() {
       case "CWeaponCSBase", "CBaseGrenade", "CBaseCSGrenade":
         pos := entity.Position()
         if pos != (r3.Vector{}) {
-          weapon := weapons[entityID].Weapon.String()
-          WeaponMovementInfos = append(WeaponMovementInfos, NewWeaponMovementInfo(pos, weapon))
+          WeaponMovementInfos = append(WeaponMovementInfos, NewWeaponMovementInfo(pos, weapon.String()))
         }
-        continue
+        break L
       }
     }
   }

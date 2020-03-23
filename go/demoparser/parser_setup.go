@@ -9,6 +9,7 @@ import (
   "github.com/markus-wa/demoinfocs-golang"
   "github.com/markus-wa/demoinfocs-golang/events"
   "github.com/markus-wa/demoinfocs-golang/metadata"
+  "path"
   "reflect"
   "syscall/js"
   "unsafe"
@@ -186,6 +187,7 @@ func (dp *DemoParser) setupOnDemoLoadCb() {
     dp.parser = demoinfocs.NewParser(reader)
     dp.header, err = dp.parser.ParseHeader()
     dp.checkError(err)
+    dp.header.MapName = path.Base(dp.header.MapName)
     dp.parser.RegisterEventHandler(func(e events.WeaponFire) {
       dp.firing[e.Shooter.SteamID] = dp.parser.CurrentTime()
     })
@@ -195,6 +197,8 @@ func (dp *DemoParser) setupOnDemoLoadCb() {
     dp.parser.RegisterEventHandler(func(e events.RoundStart) {
       dp.bombDefused = false
     })
+    dp.parser.RegisterEventHandler(dp.entityHandler)
+    // dp.parser.RegisterEventHandler(dp.weaponEntityHandler)
 
     dp.log("Ready for operations")
 

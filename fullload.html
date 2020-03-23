@@ -23,13 +23,12 @@
 
   <input type="file" id="uploader" />
 
-  <button id="close">Shutdown app</button><br>
+  <button id="close" onclick="closeGo()">Shutdown app</button><br>
   <button id="btnHeader" onclick="showHeader()">Show header</button>
   <button id="btnPrintPositions" onclick="printPositions()">Print positions</button>
   <button id="btnDrawFrame" onclick="drawFrame()">Draw frame</button>
   <button id="btnDrawFrames" onclick="startDrawFrames()">Draw frames</button>
   <button id="btnStopResume" onclick="changeDraw()">Stop</button>
-  <button id="btnChangeRadar" onclick="changeRadar()">Change radar</button>
 
   <br />
 
@@ -52,8 +51,8 @@
   <label for="y_center">Y-center</label>
   <input type="range" min=0.6 max=0.8 value=0.724 step=0.001 id="y_center" onchange="updateYCenter(this.value);">
   <br>
-  <label id="xcoord">0</label>
-  <label id="ycoord">0</label>
+  <label id="xcoord"></label>
+  <label id="ycoord"></label>
   <div id="canvases" style="position: relative;">
     <canvas id="mapCanvas" width="1024" height="1024"
             style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>

@@ -2,6 +2,7 @@ package demoparser
 
 import (
   "bytes"
+  "fmt"
   "github.com/golang/geo/r2"
   "github.com/golang/geo/r3"
   "github.com/markus-wa/demoinfocs-golang"
@@ -9,6 +10,7 @@ import (
   "github.com/markus-wa/demoinfocs-golang/events"
   st "github.com/markus-wa/demoinfocs-golang/sendtables"
   "reflect"
+  "strings"
   "syscall/js"
   "time"
 )
@@ -170,16 +172,24 @@ type DemoParser struct {
   firing           map[int64]time.Duration
   bombDefused      bool
 
+  chickensByEntityID map[int]*Chicken
+  weaponsByEntityID  map[int]*Weapon
+  doorsByEntityID    map[int]*Door
+  equipmentMapping   map[*st.ServerClass]common.EquipmentElement
+
   console js.Value
   done    chan struct{}
 }
 
 func New() *DemoParser {
   return &DemoParser{
-    console:      js.Global().Get("console"),
-    done:         make(chan struct{}),
-    hasNextFrame: true,
-    firing:       make(map[int64]time.Duration),
+    console:            js.Global().Get("console"),
+    done:               make(chan struct{}),
+    hasNextFrame:       true,
+    firing:             make(map[int64]time.Duration),
+    chickensByEntityID: make(map[int]*Chicken),
+    weaponsByEntityID:  make(map[int]*Weapon),
+    doorsByEntityID:    make(map[int]*Door),
   }
 }
 
@@ -274,14 +284,19 @@ func NewChickenMovementInfo(entity *st.Entity) ChickenMovementInfo {
 }
 
 type WeaponMovementInfo struct {
-  Position r3.Vector `bson:"Position" json:"Position"`
-  Name     string    `json:"WeaponName" bson:"WeaponName"`
+  Position      r3.Vector `bson:"Position" json:"Position"`
+  Name          string    `json:"WeaponName" bson:"WeaponName"`
+  ServerClass   string    `json:"ServerClass" bson:"ServerClass"`
+  ServerClassID int       `json:"ServerClassID" bson:"ServerClassID"`
+  AngRotation   float64   `json:"AngRotation" bson:"AngRotation"`
 }
 
-func NewWeaponMovementInfo(pos r3.Vector, name string) WeaponMovementInfo {
+func NewWeaponMovementInfo(pos r3.Vector, name string, serverClass string, id int) WeaponMovementInfo {
   return WeaponMovementInfo{
-    Position: pos,
-    Name:     name,
+    Position:      pos,
+    Name:          name,
+    ServerClass:   serverClass,
+    ServerClassID: id,
   }
 }
 
@@ -334,37 +349,130 @@ func (dp *DemoParser) getPlayersPositions() []PlayerMovementInfo {
 
 func (dp *DemoParser) getChickensPositions() []ChickenMovementInfo {
   ChickenMovementInfos := make([]ChickenMovementInfo, 0, 8)
-  for _, entity := range dp.parser.GameState().Entities() {
-    if entity.ServerClass().Name() == "CChicken" {
-      ChickenMovementInfos = append(ChickenMovementInfos, NewChickenMovementInfo(entity))
+  for _, chicken := range dp.chickensByEntityID {
+    if chicken.Entity != nil {
+      ChickenMovementInfos = append(ChickenMovementInfos, NewChickenMovementInfo(chicken.Entity))
     }
   }
+  // for _, entity := range dp.parser.GameState().Entities() {
+  //   if entity.ServerClass().Name() == "CChicken" {
+  //     ChickenMovementInfos = append(ChickenMovementInfos, NewChickenMovementInfo(entity))
+  //   }
+  // }
   return ChickenMovementInfos
+}
+
+func (dp *DemoParser) EquipmentMapping(modelIndex int, class *st.ServerClass) common.EquipmentElement {
+
+  originalString := dp.parser.GetModelPreCache()[modelIndex]
+
+  wepType := dp.parser.GetEquipmentMapping()[class]
+
+  wepFix := func(defaultName, altName string, alt common.EquipmentElement) {
+    // Check 'altName' first because otherwise the m4a1_s is recognized as m4a4
+    if strings.Contains(originalString, altName) {
+      wepType = alt
+    } else if !strings.Contains(originalString, defaultName) {
+      panic(fmt.Sprintf("Unknown weapon model %q", originalString))
+    }
+  }
+
+  switch wepType {
+  case common.EqP2000:
+    wepFix("_pist_hkp2000", "_pist_223", common.EqUSP)
+  case common.EqM4A4:
+    wepFix("_rif_m4a1", "_rif_m4a1_s", common.EqM4A1)
+  case common.EqP250:
+    wepFix("_pist_p250", "_pist_cz_75", common.EqCZ)
+  case common.EqDeagle:
+    wepFix("_pist_deagle", "_pist_revolver", common.EqRevolver)
+  case common.EqMP7:
+    wepFix("_smg_mp7", "_smg_mp5sd", common.EqMP5)
+  }
+
+  return wepType
 }
 
 func (dp *DemoParser) getWeaponPositions() []WeaponMovementInfo {
   WeaponMovementInfos := make([]WeaponMovementInfo, 0)
   // weapons := dp.parser.Weapons()
 
-  for _, entity := range dp.parser.GameState().Entities() {
-    prop := entity.FindPropertyI("m_nModelIndex")
-    if prop == nil {
-      continue
-    }
-    sc := entity.ServerClass()
-    modelIndex := prop.Value().IntVal
-    weapon := dp.parser.EquipmentMapping(modelIndex, sc) // weapons[entityID].Weapon.String()
-    L: for _, bc := range sc.BaseClasses() {
-      switch bc.Name() {
-      case "CWeaponCSBase", "CBaseGrenade", "CBaseCSGrenade":
-        pos := entity.Position()
-        if pos != (r3.Vector{}) {
-          WeaponMovementInfos = append(WeaponMovementInfos, NewWeaponMovementInfo(pos, weapon.String()))
-        }
-        break L
-      }
+  for _, weapon := range dp.weaponsByEntityID {
+    if weapon.Entity != nil && weapon.Owner == nil {
+      WeaponMovementInfos = append(WeaponMovementInfos,
+        NewWeaponMovementInfo(
+          weapon.Position,
+          weapon.Type.String(),
+          weapon.Entity.ServerClass().Name(),
+          weapon.Entity.ServerClass().ID(),
+        ))
     }
   }
+
+  for _, door := range dp.doorsByEntityID {
+    if door.Entity != nil {
+      // sc := door.Entity.ServerClass()
+      weaponMovementInfo := NewWeaponMovementInfo(
+        door.Position,
+        "Door",
+        "CPropDoorRotating",
+        0,
+      )
+      weaponMovementInfo.AngRotation = door.AngRotation
+      WeaponMovementInfos = append(WeaponMovementInfos, weaponMovementInfo)
+    }
+  }
+
+  // for _, entity := range dp.parser.GameState().Entities() {
+  //   prop := entity.FindPropertyI("m_nModelIndex")
+  //   if prop == nil {
+  //     continue
+  //   }
+  //   sc := entity.ServerClass()
+  //   modelIndex := prop.Value().IntVal
+  //   weapon := dp.EquipmentMapping(modelIndex, sc) // weapons[entityID].Weapon.String()
+  //   pos := entity.Position()
+  //   if sc.Name() == "CPropDoorRotating" {
+  //     if pos != (r3.Vector{}) {
+  //       weaponMovementInfo := NewWeaponMovementInfo(pos, "Door", sc.Name(), sc.ID())
+  //       weaponMovementInfo.AngRotation = entity.FindPropertyI("m_angRotation").Value().VectorVal.Y
+  //       WeaponMovementInfos = append(WeaponMovementInfos, weaponMovementInfo)
+  //     }
+  //     continue
+  //   }
+    // else if sc.ID() == 53 {
+    //   // } else if sc.Name() == "CEconEntity" {
+    //   if pos != (r3.Vector{}) {
+    //     weaponMovementInfo := NewWeaponMovementInfo(pos, weapon.String(), sc.Name(), sc.ID())
+    //     WeaponMovementInfos = append(WeaponMovementInfos, weaponMovementInfo)
+    //   }
+    //   continue
+    // }
+    // else if sc.Name() == "CEconWearable" {
+    //   if pos != (r3.Vector{}) {
+    //     weaponMovementInfo := NewWeaponMovementInfo(pos, weapon.String(), sc.Name(), sc.ID())
+    //     WeaponMovementInfos = append(WeaponMovementInfos, weaponMovementInfo)
+    //   }
+    //   continue
+    // }
+    // L:
+    //   for _, bc := range sc.BaseClasses() {
+    //     switch bc.Name() {
+    //     case "CWeaponCSBase", "CBaseGrenade", "CBaseCSGrenade":
+    //       if pos != (r3.Vector{}) {
+    //         WeaponMovementInfos = append(WeaponMovementInfos,
+    //           NewWeaponMovementInfo(pos, weapon.String(), sc.Name(), sc.ID()))
+    //       }
+    //       break L
+    //       // default:
+    //       //   if pos != (r3.Vector{}) {
+    //       //     WeaponMovementInfos = append(WeaponMovementInfos,
+    //       //       NewWeaponMovementInfo(pos, "UNKNOWN", sc.Name()))
+    //       //   }
+    //       //   break L
+    //     }
+    //   }
+  // }
 
   // for entityID, weapon := range dp.parser.Weapons() {
   //   entity := dp.parser.GameState().Entities()[entityID]

@@ -214,6 +214,10 @@ function displayPlayersPositions(positions) {
     ctx.fill();
     ctx.strokeStyle = '#000000';
     ctx.stroke();
+    ctx.beginPath();
+    ctx.strokeStyle = '#FF0000';
+    ctx.arc(pos_x, pos_y, 7, -(chicken.ViewY + 20)/180 * Math.PI,-(chicken.ViewY - 20)/180 * Math.PI);
+    ctx.stroke();
   }
 
   // console.log(getWeaponPositions());
@@ -221,11 +225,33 @@ function displayPlayersPositions(positions) {
 
   for (let i = 0; i < weaponPositions.length; i++) {
     const weapon = weaponPositions[i];
-    json_pos = JSON.parse(translate(weapon.Position.X, weapon.Position.Y));
-    pos_x = json_pos.X;
-    pos_y = json_pos.Y;
+    const json_pos = JSON.parse(translate(weapon.Position.X, weapon.Position.Y));
+    const pos_x = json_pos.X;
+    const pos_y = json_pos.Y;
+
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(weapon.WeaponName, pos_x - 20, pos_y - 20);
+    if (weapon.WeaponName !== "UNKNOWN") {
+      ctx.fillText(weapon.WeaponName, pos_x - 20, pos_y - 20);
+      if (weapon.WeaponName === "Door") {
+        ctx.beginPath();
+        ctx.strokeStyle = '#BB7700';
+        ctx.moveTo(pos_x, pos_y);
+        const angRotation = weapon.AngRotation / 180 * Math.PI;
+        const cosAng = Math.cos(angRotation), sinAng = Math.sin(angRotation);
+        const x0 = 0, y0 = 54;
+        const x = weapon.Position.X + cosAng * x0 - sinAng * y0;
+        const y = weapon.Position.Y + sinAng * x0 + cosAng * y0;
+        const final_point = JSON.parse(translate(x, y));
+        ctx.lineWidth = 2;
+        ctx.lineTo(final_point.X, final_point.Y);
+        ctx.stroke();
+      }
+    } else {
+      const cur_font = ctx.font;
+      ctx.font = "10px Verdana";
+      ctx.fillText(weapon.ServerClass, pos_x - 20, pos_y - 20);
+      ctx.font = cur_font;
+    }
     ctx.beginPath();
     ctx.fillStyle = '#000000';
     ctx.arc(pos_x, pos_y, 2, 0, 2 * Math.PI);

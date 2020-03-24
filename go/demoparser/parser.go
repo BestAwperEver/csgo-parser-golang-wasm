@@ -398,7 +398,7 @@ func (dp *DemoParser) getWeaponPositions() []WeaponMovementInfo {
   // weapons := dp.parser.Weapons()
 
   for _, weapon := range dp.weaponsByEntityID {
-    if weapon.Entity != nil && weapon.Owner == nil {
+    if weapon.Entity != nil && weapon.Position.X != 0 {
       WeaponMovementInfos = append(WeaponMovementInfos,
         NewWeaponMovementInfo(
           weapon.Position,

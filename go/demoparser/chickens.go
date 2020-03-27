@@ -12,7 +12,7 @@ type Chicken struct {
   ViewAngle float32
 }
 
-func (dp *DemoParser) bindNewChicken(chickenEntity *st.Entity) {
+func (dp *DemoParser) bindChicken(chickenEntity *st.Entity) {
   entityID := chickenEntity.ID()
   ch := dp.chickensByEntityID[entityID]
 

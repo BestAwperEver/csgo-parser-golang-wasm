@@ -197,7 +197,7 @@ func (dp *DemoParser) setupOnDemoLoadCb() {
     dp.parser.RegisterEventHandler(func(e events.RoundStart) {
       dp.bombDefused = false
     })
-    dp.parser.RegisterEventHandler(dp.entityHandler)
+    dp.parser.RegisterEventHandler(dp.handleDataTablesParsed)
     // dp.parser.RegisterEventHandler(dp.weaponEntityHandler)
 
     dp.log("Ready for operations")

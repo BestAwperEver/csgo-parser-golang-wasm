@@ -2,7 +2,6 @@ package demoparser
 
 import (
   "bytes"
-  "fmt"
   "github.com/golang/geo/r2"
   "github.com/golang/geo/r3"
   "github.com/markus-wa/demoinfocs-golang"
@@ -10,7 +9,6 @@ import (
   "github.com/markus-wa/demoinfocs-golang/events"
   st "github.com/markus-wa/demoinfocs-golang/sendtables"
   "reflect"
-  "strings"
   "syscall/js"
   "time"
 )
@@ -362,51 +360,70 @@ func (dp *DemoParser) getChickensPositions() []ChickenMovementInfo {
   return ChickenMovementInfos
 }
 
-func (dp *DemoParser) EquipmentMapping(modelIndex int, class *st.ServerClass) common.EquipmentElement {
-
-  originalString := dp.parser.GetModelPreCache()[modelIndex]
-
-  wepType := dp.parser.GetEquipmentMapping()[class]
-
-  wepFix := func(defaultName, altName string, alt common.EquipmentElement) {
-    // Check 'altName' first because otherwise the m4a1_s is recognized as m4a4
-    if strings.Contains(originalString, altName) {
-      wepType = alt
-    } else if !strings.Contains(originalString, defaultName) {
-      panic(fmt.Sprintf("Unknown weapon model %q", originalString))
-    }
-  }
-
-  switch wepType {
-  case common.EqP2000:
-    wepFix("_pist_hkp2000", "_pist_223", common.EqUSP)
-  case common.EqM4A4:
-    wepFix("_rif_m4a1", "_rif_m4a1_s", common.EqM4A1)
-  case common.EqP250:
-    wepFix("_pist_p250", "_pist_cz_75", common.EqCZ)
-  case common.EqDeagle:
-    wepFix("_pist_deagle", "_pist_revolver", common.EqRevolver)
-  case common.EqMP7:
-    wepFix("_smg_mp7", "_smg_mp5sd", common.EqMP5)
-  }
-
-  return wepType
-}
+// func (dp *DemoParser) EquipmentMapping(modelIndex int, class *st.ServerClass) common.EquipmentElement {
+//
+//   originalString := dp.parser.GetModelPreCache()[modelIndex]
+//
+//   wepType := dp.parser.GetEquipmentMapping()[class]
+//
+//   wepFix := func(defaultName, altName string, alt common.EquipmentElement) {
+//     // Check 'altName' first because otherwise the m4a1_s is recognized as m4a4
+//     if strings.Contains(originalString, altName) {
+//       wepType = alt
+//     } else if !strings.Contains(originalString, defaultName) {
+//       panic(fmt.Sprintf("Unknown weapon model %q", originalString))
+//     }
+//   }
+//
+//   switch wepType {
+//   case common.EqP2000:
+//     wepFix("_pist_hkp2000", "_pist_223", common.EqUSP)
+//   case common.EqM4A4:
+//     wepFix("_rif_m4a1", "_rif_m4a1_s", common.EqM4A1)
+//   case common.EqP250:
+//     wepFix("_pist_p250", "_pist_cz_75", common.EqCZ)
+//   case common.EqDeagle:
+//     wepFix("_pist_deagle", "_pist_revolver", common.EqRevolver)
+//   case common.EqMP7:
+//     wepFix("_smg_mp7", "_smg_mp5sd", common.EqMP5)
+//   }
+//
+//   return wepType
+// }
 
 func (dp *DemoParser) getWeaponPositions() []WeaponMovementInfo {
   WeaponMovementInfos := make([]WeaponMovementInfo, 0)
   // weapons := dp.parser.Weapons()
 
   for _, weapon := range dp.weaponsByEntityID {
-    if weapon.Entity != nil && weapon.Position.X != 0 {
+    if weapon.Entity != nil && weapon.Owner == nil {
       WeaponMovementInfos = append(WeaponMovementInfos,
         NewWeaponMovementInfo(
           weapon.Position,
           weapon.Type.String(),
           weapon.Entity.ServerClass().Name(),
           weapon.Entity.ServerClass().ID(),
-        ))
+        ),
+      )
     }
+  }
+
+  for _, grenade := range dp.parser.GameState().GrenadeProjectiles() {
+    entity, found := dp.parser.GameState().Entities()[grenade.WeaponInstance.EntityID]
+    var scname string
+    var scid int
+    if found {
+      scname = entity.ServerClass().Name()
+      scid = entity.ServerClass().ID()
+    }
+    WeaponMovementInfos = append(WeaponMovementInfos,
+      NewWeaponMovementInfo(
+        grenade.Position,
+        grenade.Weapon.String(),
+        scname,
+        scid,
+      ),
+    )
   }
 
   for _, door := range dp.doorsByEntityID {

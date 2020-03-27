@@ -1,7 +1,9 @@
 package demoparser
 
 import (
+  "github.com/markus-wa/demoinfocs-golang/common"
   "github.com/markus-wa/demoinfocs-golang/events"
+  st "github.com/markus-wa/demoinfocs-golang/sendtables"
 )
 
 // func (dp *DemoParser) chickenEntityHandler(events.DataTablesParsed) {
@@ -18,41 +20,39 @@ import (
 //   }
 // }
 
-func (dp *DemoParser) entityHandler(events.DataTablesParsed) {
-
-  // weaponClasses := []string{
-  //   "CWeaponCSBase", "CBaseGrenade", "CBaseCSGrenade",
-  // }
-
+func (dp *DemoParser) handleDataTablesParsed(events.DataTablesParsed) {
   for _, sc := range dp.parser.ServerClasses() {
-    if sc.Name() == "CEconEntity" {
-      sc.OnEntityCreated(dp.bindNewWeapon)
-    } else if sc.Name() == "CChicken" {
-      sc.OnEntityCreated(dp.bindNewChicken)
-    } else if sc.Name() == "CPropDoorRotating" {
-      sc.OnEntityCreated(dp.bindNewDoor)
-    } else {
+    switch sc.Name() {
+    case "CEconEntity":
+        sc.OnEntityCreated(func(weaponEntity *st.Entity) {
+          if wep, ok := dp.parser.GameState().Weapons()[weaponEntity.ID()]; ok {
+            dp.bindWeapon(weaponEntity, wep.Weapon)
+          } else {
+            dp.bindWeapon(weaponEntity, common.EqDefuseKit)
+          }
+        })
+    case "CChicken":
+      sc.OnEntityCreated(dp.bindChicken)
+    case "CPropDoorRotating":
+      sc.OnEntityCreated(dp.bindDoor)
+    // case "CCSPlayer":
+    //   sc.OnEntityCreated(dp.bindPlayer)
+    // case "CCSGameRulesProxy":
+    //   sc.OnEntityCreated(dp.bindGameRules)
+    default:
       for _, bc := range sc.BaseClasses() {
         switch bc.Name() {
-        case "CWeaponCSBase", "CBaseGrenade", "CBaseCSGrenade":
-          // sc2 := sc // Local copy for loop
-          sc.OnEntityCreated(dp.bindNewWeapon)
-          // case "CBaseGrenade": // Grenade that has been thrown by player.
-          //   sc.OnEntityCreated(p.bindGrenadeProjectiles)
-          // case "CBaseCSGrenade":
-          //   // @micvbang TODO: handle grenades dropped by dead player.
-          //   // Grenades that were dropped by a dead player (and can be picked up by other players).
+        // case "CBaseGrenade": // Grenade that has been thrown by player.
+        case "CWeaponCSBase", "CBaseCSGrenade":
+          sc.OnEntityCreated(func(weaponEntity *st.Entity) {
+            if wep, ok := dp.parser.GameState().Weapons()[weaponEntity.ID()]; ok {
+              dp.bindWeapon(weaponEntity, wep.Weapon)
+            } else {
+              dp.bindWeapon(weaponEntity, common.EqUnknown)
+            }
+          })
         }
       }
     }
   }
-
-  // for _, weaponClass := range weaponClasses {
-  //   weapons := dp.parser.ServerClasses().FindByName(weaponClass)
-  //   if weapons != nil {
-  //     weapons.OnEntityCreated(func(weaponEntity *st.Entity) {
-  //       dp.bindNewWeapon(weaponEntity)
-  //     })
-  //   }
-  // }
 }

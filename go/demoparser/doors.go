@@ -13,7 +13,7 @@ type Door struct {
   ModelIndex int
 }
 
-func (dp *DemoParser) bindNewDoor(doorEntity *st.Entity) {
+func (dp *DemoParser) bindDoor(doorEntity *st.Entity) {
   entityID := doorEntity.ID()
   door := dp.doorsByEntityID[entityID]
 

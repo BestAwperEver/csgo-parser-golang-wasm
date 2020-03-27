@@ -14,7 +14,7 @@ type Weapon struct {
   Type     common.EquipmentElement
 }
 
-func (dp *DemoParser) bindNewWeapon(weaponEntity *st.Entity) {
+func (dp *DemoParser) bindWeapon(weaponEntity *st.Entity, weaponType common.EquipmentElement) {
   entityID := weaponEntity.ID()
   wp := dp.weaponsByEntityID[entityID]
 
@@ -22,18 +22,23 @@ func (dp *DemoParser) bindNewWeapon(weaponEntity *st.Entity) {
     wp = &Weapon{
       EntityID: entityID,
       Entity:   weaponEntity,
-      Type:     dp.parser.Weapons()[entityID].Weapon,
+      Type:     weaponType,
     }
     dp.weaponsByEntityID[entityID] = wp
-  }
 
-  weaponEntity.OnDestroy(func() {
-    delete(dp.weaponsByEntityID, entityID)
-    wp.Entity = nil
-  })
+    // if wp.Type == common.EqUnknown {
+    //   dp.dbgLog(weaponEntity.ServerClass().Name() + " has unknown type",
+    //     dbgPrintUnknownWeapons)
+    // }
+  }
 
   weaponEntity.BindPosition(&wp.Position)
   weaponEntity.FindPropertyI("m_hOwnerEntity").OnUpdate(func(val st.PropertyValue) {
     wp.Owner = dp.parser.GameState().Participants().FindByHandle(val.IntVal)
+  })
+
+  weaponEntity.OnDestroy(func() {
+    delete(dp.weaponsByEntityID, entityID)
+    wp.Entity = nil
   })
 }

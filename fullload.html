@@ -32,6 +32,7 @@
 
   <br />
 
+  <!--
   <table>
     <thead>
     <th>Parameter</th>
@@ -40,19 +41,19 @@
     <tbody id="header">
     </tbody>
   </table>
-
-  <label for="map_width">Map width</label>
-  <input type="range" min=4400 max=4900 value=4526 step=1 id="map_width" onchange="updateXMultiplier(this.value);">
-  <label for="map_height">Map height</label>
-  <input type="range" min=4100 max=4700 value=4478 step=1 id="map_height" onchange="updateYMultiplier(this.value);">
+    <label for="map_width">Map width</label>
+    <input type="range" min=4400 max=4900 value=4526 step=1 id="map_width" onchange="updateXMultiplier(this.value);">
+    <label for="map_height">Map height</label>
+    <input type="range" min=4100 max=4700 value=4478 step=1 id="map_height" onchange="updateYMultiplier(this.value);">
+    <br>
+    <label for="x_center">X-center</label>
+    <input type="range" min=0.4 max=0.7 value=0.549 step=0.001 id="x_center" onchange="updateXCenter(this.value);">
+    <label for="y_center">Y-center</label>
+    <input type="range" min=0.6 max=0.8 value=0.724 step=0.001 id="y_center" onchange="updateYCenter(this.value);">
   <br>
-  <label for="x_center">X-center</label>
-  <input type="range" min=0.4 max=0.7 value=0.549 step=0.001 id="x_center" onchange="updateXCenter(this.value);">
-  <label for="y_center">Y-center</label>
-  <input type="range" min=0.6 max=0.8 value=0.724 step=0.001 id="y_center" onchange="updateYCenter(this.value);">
-  <br>
-  <label id="xcoord"></label>
-  <label id="ycoord"></label>
+  -->
+  <label id="xcoord">0.0</label>
+  <label id="ycoord">0.0</label>
   <div id="canvases" style="position: relative;">
     <canvas id="mapCanvas" width="1024" height="1024"
             style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>

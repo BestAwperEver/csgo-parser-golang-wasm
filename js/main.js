@@ -1,4 +1,3 @@
-
 const go = new Go();
 // memoryBytes is an Uint8Array pointing to the webassembly memory
 let memoryBytes;
@@ -34,13 +33,31 @@ const elem = document.getElementById('canvases'),
   elemTop = elem.offsetTop,
   elements = [];
 
-elem.addEventListener('click', function(event) {
+const jsInverseTranslate = (x, y, {scaleX, scaleY, offsetX, offsetY}) => {
+  const scale = scaleX * 2000 / 1024;
+  const posX = -offsetX * scaleX;
+  const posY = -offsetY * scaleY;
+  console.log({posX, posY, scale})
+  const X = x * scale + posX
+  const Y = posY - y * scale
+  return {X, Y}
+}
+
+elem.addEventListener('click', function (event) {
   const x = event.pageX - elemLeft, y = event.pageY - elemTop;
 
-  json_pos = JSON.parse(inverseTranslate(x, y));
+  // fetch("../radars/maps.json")
+    fetch("https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/maps.json")
+    .then((response) => response.json())
+    .then((json) => {
+      const mapData = json.find(({csgoName}) => csgoName === mapName);
 
-  document.getElementById('xcoord').innerText = json_pos.X.toFixed(2);
-  document.getElementById('ycoord').innerText = json_pos.Y.toFixed(2);
+      // json_pos = JSON.parse(inverseTranslate(x, y));
+      json_pos = jsInverseTranslate(x, y, mapData.props2d);
+
+      document.getElementById('xcoord').innerText = json_pos.X.toFixed(2);
+      document.getElementById('ycoord').innerText = json_pos.Y.toFixed(2);
+    });
 
 }, false);
 
@@ -70,18 +87,18 @@ function drawFrame() {
 let draw = true;
 let anim;
 // let map_displayed = false;
+let mapName;
 
 function drawMap() {
   const mapCanvas = document.getElementById('mapCanvas');
   const ctx = mapCanvas.getContext('2d');
   const img = new Image;
-  img.onload = function(){
-    ctx.drawImage(img,0,0);
+  img.onload = function () {
+    ctx.drawImage(img, 0, 0);
   };
-  let mapName;
   getHeader((header) => {
     mapName = JSON.parse(header).MapName.toLowerCase()
-    img.src = "https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/"+mapName+"_radar.png";
+    img.src = "https://raw.githubusercontent.com/BestAwperEver/csgo-parser-golang-wasm/master/radars/" + mapName + "_radar.png";
   });
   // map_displayed = true;
 }
@@ -109,9 +126,9 @@ let y_center = 0.724;
 /**
  * @return {string}
  */
-function LightenDarkenColor(col,amt) {
+function LightenDarkenColor(col, amt) {
   let usePound = false;
-  if ( col[0] === "#" ) {
+  if (col[0] === "#") {
     col = col.slice(1);
     usePound = true;
   }
@@ -120,20 +137,20 @@ function LightenDarkenColor(col,amt) {
 
   let r = (num >> 16) + amt;
 
-  if ( r > 255 ) r = 255;
-  else if  (r < 0) r = 0;
+  if (r > 255) r = 255;
+  else if (r < 0) r = 0;
 
   let b = ((num >> 8) & 0x00FF) + amt;
 
-  if ( b > 255 ) b = 255;
-  else if  (b < 0) b = 0;
+  if (b > 255) b = 255;
+  else if (b < 0) b = 0;
 
   let g = (num & 0x0000FF) + amt;
 
-  if ( g > 255 ) g = 255;
-  else if  ( g < 0 ) g = 0;
+  if (g > 255) g = 255;
+  else if (g < 0) g = 0;
 
-  return (usePound?"#":"") + (g | (b << 8) | (r << 16)).toString(16);
+  return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
 }
 
 function displayPlayersPositions(positions) {
@@ -195,7 +212,7 @@ function displayPlayersPositions(positions) {
     } else {
       ctx.strokeStyle = '#000000';
     }
-    ctx.arc(pos_x, pos_y, 7, -(player.ViewX + 20)/180 * Math.PI,-(player.ViewX - 20)/180 * Math.PI);
+    ctx.arc(pos_x, pos_y, 7, -(player.ViewX + 20) / 180 * Math.PI, -(player.ViewX - 20) / 180 * Math.PI);
     // ctx.fill();
     ctx.stroke();
   }
@@ -216,7 +233,7 @@ function displayPlayersPositions(positions) {
     ctx.stroke();
     ctx.beginPath();
     ctx.strokeStyle = '#FF0000';
-    ctx.arc(pos_x, pos_y, 7, -(chicken.ViewY + 20)/180 * Math.PI,-(chicken.ViewY - 20)/180 * Math.PI);
+    ctx.arc(pos_x, pos_y, 7, -(chicken.ViewY + 20) / 180 * Math.PI, -(chicken.ViewY - 20) / 180 * Math.PI);
     ctx.stroke();
   }
 
@@ -291,7 +308,7 @@ function onShowHeader(header) {
 }
 
 // handles file loading
-document.getElementById('uploader').addEventListener('change', function() {
+document.getElementById('uploader').addEventListener('change', function () {
   // map_displayed = false;
   let reader = new FileReader();
   reader.onload = (ev) => {
@@ -326,11 +343,11 @@ function updateYCenter(value) {
 function displayHeader(header) {
   const table = document.getElementById('header');
 
-  Object.keys(header).forEach(function(key) {
+  Object.keys(header).forEach(function (key) {
     const row = document.createElement('tr');
     row.appendChild(td(key));
     if (key === "PlaybackTime") {
-      row.appendChild(td(header[key]/60/1000000000));
+      row.appendChild(td(header[key] / 60 / 1000000000));
     } else {
       row.appendChild(td(header[key]));
     }

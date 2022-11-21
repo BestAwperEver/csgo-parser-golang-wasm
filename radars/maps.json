@@ -1,0 +1,369 @@
+[{
+  "csgoName": "de_cache",
+  "props2d": {
+    "offsetX": 710.2272727272727,
+    "offsetY": 1154.119318181818,
+    "scaleX": 2.816,
+    "scaleY": -2.816
+  }
+},{
+  "csgoName": "de_mirage",
+  "props2d": {
+    "offsetX": 1261.71875,
+    "offsetY": 669.140625,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "de_inferno",
+  "props2d": {
+    "offsetX": 831.8718112244896,
+    "offsetY": 1542.5701530612243,
+    "scaleX": 2.5088000000000004,
+    "scaleY": -2.5088000000000004
+  }
+},{
+  "csgoName": "de_train",
+  "props2d": {
+    "offsetX": 1029.3384308510638,
+    "offsetY": 994.0159574468084,
+    "scaleX": 2.4064,
+    "scaleY": -2.4064
+  }
+},{
+  "csgoName": "de_vertigo",
+  "props2d": {
+    "offsetX": 1546.875,
+    "offsetY": 860.3515625,
+    "scaleX": 2.048,
+    "scaleY": -2.048
+  }
+},{
+  "csgoName": "de_nuke",
+  "props2d": {
+    "offsetX": 963.4486607142857,
+    "offsetY": 805.5245535714287,
+    "scaleX": 3.584,
+    "scaleY": -3.584
+  }
+},{
+  "csgoName": "de_dust2",
+  "props2d": {
+    "offsetX": 1099.0767045454545,
+    "offsetY": 1437.7663352272725,
+    "scaleX": 2.2528,
+    "scaleY": -2.2528
+  }
+},{
+  "csgoName": "de_overpass",
+  "props2d": {
+    "offsetX": 1814.5282451923078,
+    "offsetY": 668.9453124999998,
+    "scaleX": 2.6624,
+    "scaleY": -2.6624
+  }
+},{
+  "csgoName": "de_mirage",
+  "props2d": {
+    "offsetX": 1261.71875,
+    "offsetY": 669.140625,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "de_mirage",
+  "props2d": {
+    "offsetX": 1261.71875,
+    "offsetY": 669.140625,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "de_mirage",
+  "props2d": {
+    "offsetX": 1261.71875,
+    "offsetY": 669.140625,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "de_vertigo",
+  "props2d": {
+    "offsetX": 1546.875,
+    "offsetY": 860.3515625,
+    "scaleX": 2.048,
+    "scaleY": -2.048
+  }
+},{
+  "csgoName": "de_dust2",
+  "props2d": {
+    "offsetX": 1099.0767045454545,
+    "offsetY": 1437.7663352272725,
+    "scaleX": 2.2528,
+    "scaleY": -2.2528
+  }
+},{
+  "csgoName": "de_engage",
+  "props2d": {
+    "offsetX": 1194.8927642980937,
+    "offsetY": 1007.36568457539,
+    "scaleX": 2.95424,
+    "scaleY": -2.95424
+  }
+},{
+  "csgoName": "de_anubis",
+  "props2d": {
+    "offsetX": 1046.1566091954023,
+    "offsetY": 1245.2107279693487,
+    "scaleX": 2.67264,
+    "scaleY": -2.67264
+  }
+},{
+  "csgoName": "de_ancient",
+  "props2d": {
+    "offsetX": 1153.515625,
+    "offsetY": 845.3125,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "cs_apollo",
+  "props2d": {
+    "offsetX": 775.8138667992047,
+    "offsetY": -622.8255467196818,
+    "scaleX": 2.5753600000000003,
+    "scaleY": -2.5753600000000003
+  }
+},{
+  "csgoName": "cs_office",
+  "props2d": {
+    "offsetX": 875.5716463414635,
+    "offsetY": 885.0990853658537,
+    "scaleX": 2.0991999999999997,
+    "scaleY": -2.0991999999999997
+  }
+},{
+  "csgoName": "cs_agency",
+  "props2d": {
+    "offsetX": 1151.171875,
+    "offsetY": 973.4375,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "de_shortnuke",
+  "props2d": {
+    "offsetX": 963.4486607142857,
+    "offsetY": 805.5245535714286,
+    "scaleX": 3.584,
+    "scaleY": -3.584
+  }
+},{
+  "csgoName": "de_cbble",
+  "props2d": {
+    "offsetX": 1250,
+    "offsetY": 1000,
+    "scaleX": 3.072,
+    "scaleY": -3.072
+  }
+},{
+  "csgoName": "de_mocha",
+  "props2d": {
+    "offsetX": 104.98542089249494,
+    "offsetY": 1271.710192697769,
+    "scaleX": 2.5241599999999997,
+    "scaleY": -2.5241599999999997
+  }
+},{
+  "csgoName": "de_ancient",
+  "props2d": {
+    "offsetX": 1153.515625,
+    "offsetY": 845.3125,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "de_grind",
+  "props2d": {
+    "offsetX": 1454.296875,
+    "offsetY": 1182.03125,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "de_shortdust",
+  "props2d": {
+    "offsetX": 1257.595486111111,
+    "offsetY": 1267.9036458333333,
+    "scaleX": 1.8432000000000002,
+    "scaleY": -1.8432000000000002
+  }
+},{
+  "csgoName": "de_season",
+  "props2d": {
+    "offsetX": 391.796875,
+    "offsetY": 984.765625,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "cs_italy",
+  "props2d": {
+    "offsetX": 1123.8960597826087,
+    "offsetY": 1100.5434782608695,
+    "scaleX": 2.3552,
+    "scaleY": -2.3552
+  }
+},{
+  "csgoName": "de_swamp",
+  "props2d": {
+    "offsetX": 846.3541666666666,
+    "offsetY": 1271.484375,
+    "scaleX": 3.072,
+    "scaleY": -3.072
+  }
+},{
+  "csgoName": "de_basalt",
+  "props2d": {
+    "offsetX": 1048.3656647776027,
+    "offsetY": 1069.0063849756864,
+    "scaleX": 2.2374400000000003,
+    "scaleY": -2.2374400000000003
+  }
+},{
+  "csgoName": "cs_insertion2",
+  "props2d": {
+    "offsetX": 1113.064236111111,
+    "offsetY": 680.5555555555554,
+    "scaleX": 4.6080000000000005,
+    "scaleY": -4.6080000000000005
+  }
+},{
+  "csgoName": "de_ravine",
+  "props2d": {
+    "offsetX": -448.5566737288135,
+    "offsetY": 413.13559322033893,
+    "scaleX": 1.5104000000000002,
+    "scaleY": -1.5104000000000002
+  }
+},{
+  "csgoName": "de_ruby",
+  "props2d": {
+    "offsetX": 468.3159722222222,
+    "offsetY": 1342.4479166666665,
+    "scaleX": 2.3040000000000003,
+    "scaleY": -2.3040000000000003
+  }
+},{
+  "csgoName": "de_dust",
+  "props2d": {
+    "offsetX": 927.734375,
+    "offsetY": 1325.8463541666667,
+    "scaleX": 3.072,
+    "scaleY": -3.072
+  }
+},{
+  "csgoName": "de_aztec",
+  "props2d": {
+    "offsetX": 1041.6666666666667,
+    "offsetY": 924.8046875,
+    "scaleX": 3.072,
+    "scaleY": -3.072
+  }
+},{
+  "csgoName": "cs_climb",
+  "props2d": {
+    "offsetX": 390.8526369463869,
+    "offsetY": 1930.816579254079,
+    "scaleX": 2.19648,
+    "scaleY": -2.19648
+  }
+},{
+  "csgoName": "de_iris",
+  "props2d": {
+    "offsetX": 993.0555555555554,
+    "offsetY": 1016.0590277777777,
+    "scaleX": 2.3040000000000003,
+    "scaleY": -2.3040000000000003
+  }
+},{
+  "csgoName": "gd_rialto",
+  "props2d": {
+    "offsetX": 820.3125,
+    "offsetY": 1195.3125,
+    "scaleX": 1.536,
+    "scaleY": -1.536
+  }
+},{
+  "csgoName": "de_crete",
+  "props2d": {
+    "offsetX": 1321.7522658610271,
+    "offsetY": 830.8157099697885,
+    "scaleX": 1.69472,
+    "scaleY": -1.69472
+  }
+},{
+  "csgoName": "de_hive",
+  "props2d": {
+    "offsetX": 262.04021197007484,
+    "offsetY": 1270.2618453865339,
+    "scaleX": 2.05312,
+    "scaleY": -2.05312
+  }
+},{
+  "csgoName": "de_lake",
+  "props2d": {
+    "offsetX": -450.7211538461538,
+    "offsetY": -262.92067307692304,
+    "scaleX": 2.6624000000000003,
+    "scaleY": -2.6624000000000003
+  }
+},{
+  "csgoName": "de_ancient",
+  "props2d": {
+    "offsetX": 1153.515625,
+    "offsetY": 845.3125,
+    "scaleX": 2.56,
+    "scaleY": -2.56
+  }
+},{
+  "csgoName": "de_breach",
+  "props2d": {
+    "offsetX": 1047.5852272727273,
+    "offsetY": 1024.8579545454545,
+    "scaleX": 2.816,
+    "scaleY": -2.816
+  }
+},{
+  "csgoName": "de_tuscan",
+  "props2d": {
+    "offsetX": 2070.3125,
+    "offsetY": 438.1443298969072,
+    "scaleX": 2.4832,
+    "scaleY": -2.4832
+  }
+},{
+  "csgoName": "de_prime",
+  "props2d": {
+    "offsetX": 2236.328125,
+    "offsetY": 758.30078125,
+    "scaleX": 2.048,
+    "scaleY": -2.048
+  }
+},{
+  "csgoName": "de_blagai",
+  "props2d": {
+    "offsetX": 1080.109126984127,
+    "offsetY": 440.2281746031746,
+    "scaleX": 1.6128,
+    "scaleY": -1.6128
+  }
+},{
+  "csgoName": "cs_militia",
+  "props2d": {
+    "offsetX": 639.7569444444443,
+    "offsetY": 996.5277777777777,
+    "scaleX": 2.3040000000000003,
+    "scaleY": -2.3040000000000003
+  }
+}]
